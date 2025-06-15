@@ -10,17 +10,23 @@ import io
 
 app = Flask(__name__)
 
-# Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wedding.db'
+# Configure database
+if 'DATABASE_URL' in os.environ:
+    # Heroku PostgreSQL
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'].replace('postgres://', 'postgresql://')
+else:
+    # Local SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wedding.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # Email configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Update with your SMTP server
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Update with your email
-app.config['MAIL_PASSWORD'] = 'your-app-password'  # Update with your app password
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -215,12 +221,12 @@ def submit_rsvp():
         print(f"Error in submit_rsvp: {str(e)}")  # Print error for debugging
         return jsonify({'error': str(e)}), 400
 
-# Add these new routes
+# Update static file serving
 @app.route('/')
 def home():
-    return send_from_directory('static', 'index.html')
+    return render_template('index.html')
 
-@app.route('/<path:path>')
+@app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
 
