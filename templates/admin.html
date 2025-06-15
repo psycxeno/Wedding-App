@@ -288,7 +288,7 @@
                 </thead>
                 <tbody>
                     {% for rsvp in rsvps %}
-                    <tr>
+                    <tr data-id="{{ rsvp.id }}">
                         <td>{{ rsvp.name }}</td>
                         <td>{{ 'Yes' if rsvp.attending else 'No' }}</td>
                         <td>{{ rsvp.guests }}</td>
