@@ -7,6 +7,7 @@ import os
 import pandas as pd
 from flask_mail import Mail, Message
 import io
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 
@@ -33,6 +34,14 @@ mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
+
+# Migration commands (run these in terminal):
+# flask db init
+# flask db migrate -m "Initial migration"
+# flask db upgrade
 
 # User Model for Admin Authentication
 class User(UserMixin, db.Model):
@@ -236,8 +245,7 @@ def map():
     return redirect('https://maps.app.goo.gl/pEro2gBK8Z8FWbwu6')
 
 # Create database tables
-with app.app_context():
-    db.create_all()
+# db.create_all()  # Commented out to prevent duplicate table creation in production
 
 @app.route('/api/check-name/<name>')
 def check_name(name):
