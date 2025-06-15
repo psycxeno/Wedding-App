@@ -8,6 +8,11 @@ import pandas as pd
 from flask_mail import Mail, Message
 import io
 from flask_migrate import Migrate
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -21,6 +26,11 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
+
+# Log template folder path
+logger.debug(f"Template folder: {app.template_folder}")
+logger.debug(f"Template folder exists: {os.path.exists(app.template_folder)}")
+logger.debug(f"Template folder contents: {os.listdir(app.template_folder) if os.path.exists(app.template_folder) else 'N/A'}")
 
 # Email configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -233,7 +243,12 @@ def submit_rsvp():
 # Update static file serving
 @app.route('/')
 def home():
-    return render_template('index.html')
+    logger.debug("Attempting to render index.html")
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error rendering template: {str(e)}")
+        raise
 
 @app.route('/static/<path:path>')
 def serve_static(path):
